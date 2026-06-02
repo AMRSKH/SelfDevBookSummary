@@ -1,0 +1,38 @@
+name: Update README Automatically
+
+on:
+  push:
+    branches:
+      - main  # ឬប្តូរទៅ master ប្រសិនបើ branch ចម្បងរបស់អ្នកឈ្មោះ master
+    paths:
+      - '*.md' # ឱ្យរត់តែនៅពេលណាដែលមានការប្រែប្រួលលើឯកសារ .md ប៉ុណ្ណោះ
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # ផ្តល់សិទ្ធិឱ្យ Action អាចសរសេរនិង Push ទិន្នន័យចូល Repo វិញបាន
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Run README generator script
+      run: python generate_readme.py
+
+    - name: Commit and Push if changed
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add README.md
+        if ! git diff --cached --quiet; then
+          git commit -m "docs: update README.md with latest .md content [skip ci]"
+          git push
+        else
+          echo "No changes detected in Markdown files."
+        fi
